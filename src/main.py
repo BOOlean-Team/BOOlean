@@ -6,20 +6,22 @@ from ghost import load_images
 from chatgpt import openChatGPTWindow
 import click
 
+window = tk.Tk()
+
 ANIMATION_DELAY = 150
-WINDOW_SIZE = 100
+WINDOW_SIZE = 1400
 
 DEFAULT_ANIMATION = 1
 WALK_RIGHT_ANIMATION = 2
 WALK_LEFT_ANIMATION = 3
 
 PET_WIDTH = 48
+screen_width = window.winfo_screenwidth()
 
 current_frame = 0
 # Chooses a random animation to start with
 current_state = random.randrange(1, 4, 1)
 
-window = tk.Tk()
 default, walk_right, walk_left, angry = load_images()
 
 # position of virtual pet
@@ -40,15 +42,17 @@ def update(current_frame, current_state, pos, pet_widget):
     elif current_state == WALK_RIGHT_ANIMATION: # move right
         frame = walk_right[current_frame]
         current_frame, current_state = next_frame(current_frame, walk_right, current_state)
-        pos += 3
+        pos += 30
 
     elif current_state == WALK_LEFT_ANIMATION: # move left
         frame = walk_left[current_frame]
         current_frame, current_state = next_frame(current_frame, walk_left, current_state)
-        pos -= 3
+        pos -= 30
 
     # window.geometry("100x100+" + str(pos) + "+300")
     # label.configure(image=frame)
+    canvas.config(width=screen_width, height=window.winfo_screenheight())
+    canvas.coords(pet_widget, pos, WINDOW_SIZE / 2)
     canvas.itemconfig(pet_widget, image=frame)
     window.after(ANIMATION_DELAY, update, current_frame, current_state, pos, pet_widget)
 
@@ -69,7 +73,8 @@ def angry_change(pos, pet_widget):
     canvas.itemconfig(pet_widget, image=angry[0])
     window.after(ANIMATION_DELAY, update, 0, 0, pos, pet_widget)
 
-canvas = tk.Canvas(window, width=100, height=100)
+canvas = tk.Canvas(window, width=WINDOW_SIZE, height=WINDOW_SIZE)
+
 canvas.bind(
     '<Button-1>', lambda event: openChatGPTWindow(event, window, pos, yPos))
 canvas.pack()
@@ -95,9 +100,11 @@ window.bind('<Button-3>', lambda event: click.on_click_event(event, window, pet_
 # For different OS systems
 if platform.system() == "Darwin":
     window.config(bg="systemTransparent")
-    window.wm_attributes("-transparent", True)
+    window.wm_attributes('-transparent', True)
     window.overrideredirect(True)
-    window.geometry(f"{WINDOW_SIZE}x{WINDOW_SIZE}+" + str(pos) + f"+{yPos}")
+    # window.geometry(f"{WINDOW_SIZE}x{WINDOW_SIZE}+" + str(pos) + f"+{yPos}")
+    window.geometry(f"{WINDOW_SIZE}x{WINDOW_SIZE}")
+
     window.wm_attributes("-topmost", True)
 elif platform.system() == "Windows":
     window.config(bg="white")
