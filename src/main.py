@@ -3,6 +3,7 @@ import tkinter as tk
 import platform
 
 from ghost import load_images, move
+from clickdrag import ClickDrag
 from chatgpt import openChatGPTInput
 
 ANIMATION_DELAY = 150
@@ -11,7 +12,7 @@ OFFSET = 300
 
 window = tk.Tk()
 
-default, walk_right, walk_left = load_images()
+default, walk_right, walk_left, angry = load_images()
 
 # position of virtual pet
 screen_width = window.winfo_screenwidth()
@@ -26,7 +27,13 @@ left_num = [8, 9, 10]
 event_num = random.randrange(1, 3, 1)
 
 # event number
-def event(cycle, current_state, event_num, pos, pet_widget):
+def event(cycle, current_state, event_num, pos, pet_widget, click_drag_handler):
+    if not click_drag_handler.dragging:
+        # Check if the left mouse button was released
+        if event_num == 0:  # Assuming 0 corresponds to a button release event
+            # Call the chat function only when the button is released
+            openChatGPTInput(None, window)  # Pass None as the event for now, adjust as needed
+
     if event_num in default_num:
         current_state = 0
         window.after(0, update, cycle, current_state, event_num, pos, pet_widget)
@@ -64,7 +71,7 @@ def update(cycle, current_state, event_num, pos, pet_widget):
 
 
 canvas = tk.Canvas(window, width=100, height=100)
-canvas.bind('<Button-1>', lambda event: openChatGPTInput(event, window))
+canvas.bind('<Button-1>', lambda event: click_drag_handler.start_drag(event))
 canvas.pack()
 canvas.focus_set()
 
@@ -72,6 +79,7 @@ pet_widget = canvas.create_image(
     WINDOW_SIZE / 2, WINDOW_SIZE / 2, image=default[0]
 )
 
+click_drag_handler = ClickDrag(window, pet_widget, update)
 
 # label = tk.Label(window, bd=0)
 # label.pack()

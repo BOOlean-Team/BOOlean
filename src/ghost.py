@@ -27,7 +27,7 @@ def load_images():
         for i in range(12)
     ]
 
-    return default, walk_right, walk_left
+    return default, walk_right, walk_left, angry
 
 # gif movement
 def move(cycle, frame, event_num, first, last, pet_widget):
