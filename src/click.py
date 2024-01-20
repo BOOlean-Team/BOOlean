@@ -5,7 +5,6 @@ ANIMATION_DELAY = 150
 
 click_counter = 0
 
-
 def on_click_event(pos, event, window, pet_widget, angry_change):
 
     global click_counter

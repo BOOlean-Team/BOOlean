@@ -1,5 +1,6 @@
 import random
 import tkinter as tk
+from tkinter import PhotoImage
 import platform
 
 from ghost import load_images
@@ -66,16 +67,30 @@ def next_frame(current_frame, full_animation, current_state):
     return current_frame, current_state
 
 def angry_change(pos, pet_widget, click_counter):
-    CLICK_LIMIT = 10
+    CLICK_LIMIT = 5
     if click_counter > CLICK_LIMIT:
-        canvas.itemconfig(pet_widget, image=angry[1])
-        window.after(ANIMATION_DELAY, angry_change, pos, pet_widget, click_counter)
+        open_subwindow()
+        window.after(ANIMATION_DELAY, update, 0, 0, pos, pet_widget)
     elif click_counter > 0:
         canvas.itemconfig(pet_widget, image=angry[click_counter % 12])
         window.after(ANIMATION_DELAY, angry_change, pos, pet_widget, click_counter - 1)
     else:
         window.after(ANIMATION_DELAY, update, 0, 0, pos, pet_widget)
+
+def open_subwindow():
+    subwindow = tk.Toplevel(window)
+    subwindow.title("Subwindow")
+    subwindow.size
     
+    subwindow.geometry("{0}x{1}+0+0".format(subwindow.winfo_screenwidth(), subwindow.winfo_screenheight()))
+
+    img = PhotoImage(file="assets/img/jumpscare.png")
+
+    # Add a label to display the image
+    image_label = tk.Label(subwindow, image=img)
+    image_label.image = img  # Keep a reference to the image to prevent it from being garbage collected
+    image_label.pack(padx=20, pady=20)
+    subwindow.lift()
 
 canvas = tk.Canvas(window, width=100, height=100)
 canvas.bind(
