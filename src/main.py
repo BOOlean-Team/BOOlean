@@ -2,8 +2,8 @@ import sys
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel
 from PyQt5.QtGui import QMovie
 from PyQt5.QtCore import QRect
-
 from PyQt5 import QtCore
+from click import ClickHandler
 
 
 def main():
@@ -25,6 +25,12 @@ def main():
     w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint |
                      QtCore.Qt.FramelessWindowHint)
     w.setAttribute(QtCore.Qt.WA_TranslucentBackground)
+    w.show()
+
+    click_handler = ClickHandler(w)
+    w.mousePressEvent = click_handler.start_drag
+    w.mouseMoveEvent = click_handler.drag_pet
+
     w.show()
 
     sys.exit(app.exec())
