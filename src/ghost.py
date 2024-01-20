@@ -29,4 +29,3 @@ def load_images():
     ]
 
     return default, walk_right, walk_left, angry
-
