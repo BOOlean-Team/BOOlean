@@ -29,10 +29,8 @@ event_num = random.randrange(1, 3, 1)
 # event number
 def event(cycle, current_state, event_num, pos, pet_widget, click_drag_handler):
     if not click_drag_handler.dragging:
-        # Check if the left mouse button was released
-        if event_num == 0:  # Assuming 0 corresponds to a button release event
-            # Call the chat function only when the button is released
-            openChatGPTInput(None, window)  # Pass None as the event for now, adjust as needed
+        # Only open chat if not dragging
+        openChatGPTInput(event, window)
 
     if event_num in default_num:
         current_state = 0
@@ -66,9 +64,16 @@ def update(cycle, current_state, event_num, pos, pet_widget):
     # window.geometry("100x100+" + str(pos) + "+300")
     # label.configure(image=frame)
     canvas.itemconfig(pet_widget, image=frame)
-    window.after(ANIMATION_DELAY, event, cycle, current_state, event_num, pos, pet_widget)
+    window.after(ANIMATION_DELAY, lambda: event(cycle, current_state, event_num, pos, pet_widget, click_drag_handler))
 
+def openChatGPTInput(event, window):
+    if not hasattr(window, "_chatbox_opened"):
+        print('open')
+        textInput = tk.Toplevel(window)
+        textInput.geometry('200x200')
 
+        # Mark the window as having an open chatbox to prevent further openings
+        window._chatbox_opened = True
 
 canvas = tk.Canvas(window, width=100, height=100)
 canvas.bind('<Button-1>', lambda event: click_drag_handler.start_drag(event))
@@ -79,7 +84,7 @@ pet_widget = canvas.create_image(
     WINDOW_SIZE / 2, WINDOW_SIZE / 2, image=default[0]
 )
 
-click_drag_handler = ClickDrag(window, pet_widget, update)
+click_drag_handler = ClickDrag(window, pet_widget, update, openChatGPTInput)
 
 # label = tk.Label(window, bd=0)
 # label.pack()

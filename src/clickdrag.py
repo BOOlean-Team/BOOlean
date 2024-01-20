@@ -2,17 +2,23 @@ import tkinter as tk
 import random
 
 class ClickDrag:
-    def __init__(self, parent, pet_widget, update_callback):
+    def __init__(self, parent, pet_widget, update_callback, chat_callback):
         self.parent = parent
         self.widget = pet_widget
         self.update_callback = update_callback
+        self.chat_callback = chat_callback
         self.dragging = False # to track dragging status
 
         self.drag_data = {"x": 0, "y": 0}
 
         self.parent.bind("<ButtonPress-1>", self.start_drag)
         self.parent.bind("<B1-Motion>", self.drag_pet)
-        self.parent.bind("<ButtonRelease-1>", self.stop_drag)
+        self.parent.bind("<ButtonRelease-1>", self.end_drag)
+        self.parent.bind("<Double-Button-1>", self.double_click)
+
+    def double_click(self, event):
+        if event.num == 1:  # Check for left mouse button (Button-1)
+            self.chat_callback(event, self.parent)  # Pass the event to the chat function
 
     def start_drag(self, event):
         # Record the starting position of the drag
