@@ -65,9 +65,17 @@ def next_frame(current_frame, full_animation, current_state):
             current_state = random.randrange(1, 4, 1) # Choose new event randomly
     return current_frame, current_state
 
-def angry_change(pos, pet_widget):
-    canvas.itemconfig(pet_widget, image=angry[0])
-    window.after(ANIMATION_DELAY, update, 0, 0, pos, pet_widget)
+def angry_change(pos, pet_widget, click_counter):
+    CLICK_LIMIT = 10
+    if click_counter > CLICK_LIMIT:
+        canvas.itemconfig(pet_widget, image=angry[1])
+        window.after(ANIMATION_DELAY, angry_change, pos, pet_widget, click_counter)
+    elif click_counter > 0:
+        canvas.itemconfig(pet_widget, image=angry[click_counter % 12])
+        window.after(ANIMATION_DELAY, angry_change, pos, pet_widget, click_counter - 1)
+    else:
+        window.after(ANIMATION_DELAY, update, 0, 0, pos, pet_widget)
+    
 
 canvas = tk.Canvas(window, width=100, height=100)
 canvas.bind(
@@ -86,7 +94,7 @@ def exit_click(event):
 window.bind('<Button-2>', exit_click)
 
 # Right clicking on the button
-window.bind('<Button-3>', lambda event: click.on_click_event(event, window, pet_widget, angry_change))
+window.bind('<Button-3>', lambda event: click.on_click_event(pos, event, window, pet_widget, angry_change))
 
 
 # label = tk.Label(window, bd=0)
@@ -110,7 +118,7 @@ def start_animation(canvas, pet_widget, frame):
     canvas.itemconfig(pet_widget, image=frame)
     
 
-window.after(0, start_animation, canvas, pet_widget, angry[0])
+window.after(0, start_animation, canvas, pet_widget, default[0])
 window.after(ANIMATION_DELAY, update, current_frame, current_state, pos, pet_widget)
 
 window.mainloop()
