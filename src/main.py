@@ -2,6 +2,7 @@ import sys
 import random
 
 from PyQt5 import QtCore, QtWidgets
+from click import ClickHandler
 from ghost import load_images
 from chatgpt import NewChatGPTWindow
 
@@ -34,14 +35,18 @@ class MainWindow(QtWidgets.QWidget):
         self.w.move(300, 300)
 
         self.label = QtWidgets.QLabel(self.w)
-        self.label.setGeometry(QtCore.QRect(25, 25, 200, 200))
+        self.label.setGeometry(QtCore.QRect(50, 50, 200, 200))
         self.label.resize(PET_SIZE, PET_SIZE)
 
         self.w.setWindowFlags(QtCore.Qt.WindowStaysOnTopHint |
                               QtCore.Qt.FramelessWindowHint)
         self.w.setAttribute(QtCore.Qt.WA_TranslucentBackground)
-        self.w.mousePressEvent = self.new_window
         self.w.show()
+
+        click_handler = ClickHandler(self.w)
+        self.w.mousePressEvent = click_handler.handle_mouse_press
+        self.w.mouseMoveEvent = click_handler.drag_pet
+        self.w.mouseReleaseEvent = click_handler.end_drag
 
         self.label.setMovie(self.default)
         self.default.start()
