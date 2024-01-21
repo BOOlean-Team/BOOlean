@@ -72,15 +72,12 @@ class MainWindow(QtWidgets.QWidget):
         gif.start()
 
 
-GHOST_IDLE = 'assets/idle.gif'
-
-
 def main():
     app = QtWidgets.QApplication(sys.argv)
     main_window = MainWindow()
 
-    click_handler = ClickHandler(main_window, main_window.w, 
-                        main_window.default, main_window.angry)
+    click_handler = ClickHandler(main_window, main_window.w,
+                                 main_window.default, main_window.angry)
     main_window.w.mousePressEvent = click_handler.handle_mouse_press
     main_window.w.mouseMoveEvent = click_handler.drag_pet
     main_window.w.mouseReleaseEvent = click_handler.end_drag
