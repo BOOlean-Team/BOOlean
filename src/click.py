@@ -1,8 +1,9 @@
-from PyQt5.QtCore import Qt, QPointF
+import random
+from PyQt5.QtCore import Qt, QPointF, QEasingCurve, QPropertyAnimation, QTimer, QTime
 from PyQt5.QtWidgets import QLabel
 from chatgpt import NewChatGPTWindow
 from freemovement import MovementHandler
-
+from audio import AudioManager, AUDIO_SQUEAK
 
 class ClickHandler:
     def __init__(self, main_window, widget, default_gif, angry_gif):
@@ -13,6 +14,7 @@ class ClickHandler:
         self.default_gif = default_gif
         self.angry_gif = angry_gif
 
+        self.audio_manager = AudioManager()
         self.free_movement_handler = MovementHandler(self.widget)
 
         self.setup_drag_handling()
@@ -36,6 +38,8 @@ class ClickHandler:
             self.free_movement_handler.animation.pause()
             # Display angry GIF
             self.update_angry_state(True)
+            self.click_start_time = QTime.currentTime()  # Record the time when the mouse is pressed
+            self.free_movement_handler.animation.pause()  # Pause the animation when dragging starts
 
     def drag_pet(self, event):
         if event.buttons() == Qt.LeftButton:
@@ -43,8 +47,18 @@ class ClickHandler:
             self.update_dragging_state()
 
     def end_drag(self, event):
+        print("drag has ended")
+        # Calculate the duration between press and release
+        click_duration = self.click_start_time.elapsed()
+
+        # Play the squeak sound only for quick clicks (e.g., less than 500 milliseconds)
+        if click_duration < 500:
+            print("playsound")
+            self.audio_manager.play_sound(AUDIO_SQUEAK)
+
         # Resume the animation when dragging ends
         self.free_movement_handler.animation.resume()
+        
         # Display default GIF
         self.update_angry_state(False)
     
@@ -56,18 +70,3 @@ class ClickHandler:
         gif =  self.angry_gif if is_angry else self.default_gif
         self.main_window.label.setMovie(gif)
         gif.start()
-
-def main():
-    app = QtWidgets.QApplication(sys.argv)
-    main_window = MainWindow()
-
-    click_handler = ClickHandler(main_window, main_window.w, 
-                        main_window.default, main_window.angry)
-    main_window.w.mousePressEvent = click_handler.handle_mouse_press
-    main_window.w.mouseMoveEvent = click_handler.drag_pet
-    main_window.w.mouseReleaseEvent = click_handler.end_drag
-    sys.exit(app.exec())
-
-if __name__ == '__main__':
-    main()
-
