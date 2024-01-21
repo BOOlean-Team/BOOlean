@@ -8,15 +8,38 @@ from services.chatgptAPI import get_response
 class NewChatGPTWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.layout = QVBoxLayout()
+        self.resize(250, 300)
+        self.setStyleSheet(
+            """
+            border-image: url(assets/img/ghost_rect_box.png);
+            padding: 20px 20px 80px 20px
+            """)
+
         self.text_edit = TextEdit()
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.setWindowFlags(Qt.CustomizeWindowHint | Qt.WindowStaysOnTopHint)
+
+        self.layout = QVBoxLayout()
+        self.layout.setContentsMargins(0, 0, 0, 0)
         self.layout.addWidget(self.text_edit)
+
         self.setLayout(self.layout)
 
 
 class TextEdit(QTextEdit):
+    DEFAULT_TEXT = 'Hi! How can I help you?'
+
     def __init__(self, *args, **kwargs):
         QTextEdit.__init__(self, *args, **kwargs)
+
+        font = QFont('Helvetica', 14)
+        font.setBold(True)
+
+        self.setFont(font)
+        self.setTextColor(QColor('Black'))
+        # self.setFontWeight(QFont.bold)
+        self.append(TextEdit.DEFAULT_TEXT + '\n')
+
         self.counter = 1
         self.prefix = ""
         self.callPrefix()
@@ -30,7 +53,7 @@ class TextEdit(QTextEdit):
             if "Delete" in action.text():
                 action.triggered.disconnect()
                 menu.removeAction(action)
-            elif "Cu&t" in action.text():
+            elif "Cut" in action.text():
                 action.triggered.disconnect()
                 menu.removeAction(action)
             elif "Paste" in action.text():
