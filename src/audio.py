@@ -6,7 +6,7 @@ AUDIO_SQUEAK = "assets/squeak.wav"
 class AudioManager:
     def play_sound(self, file_path):
         player = AudioPlayer(file_path)
-        player.play()
+        player.play(block=True)
 
 try:
     audio_manager = AudioManager()
