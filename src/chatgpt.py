@@ -1,62 +1,97 @@
-import tkinter as tk
+from PyQt5.QtCore import *
+from PyQt5.QtGui import *
+from PyQt5.QtWidgets import *
 
 from services.chatgptAPI import get_response
 
-# https://stackoverflow.com/questions/63828120/how-to-make-tkinter-text-widget-read-only-on-certain-characters-and-sentences
+
+class NewChatGPTWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.layout = QVBoxLayout()
+        self.text_edit = TextEdit()
+        self.layout.addWidget(self.text_edit)
+        self.setLayout(self.layout)
 
 
-class ConsoleText(tk.Text):
-    INTRO_TEXT = 'Hello! How can I help you?'
+class TextEdit(QTextEdit):
+    def __init__(self, *args, **kwargs):
+        QTextEdit.__init__(self, *args, **kwargs)
+        self.counter = 1
+        self.prefix = ""
+        self.callPrefix()
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(
+            self.onCustomContextMenuRequest)
 
-    def __init__(self, master=None, **kw):
-        tk.Text.__init__(self, master, **kw)
+    def onCustomContextMenuRequest(self, point):
+        menu = self.createStandardContextMenu()
+        for action in menu.actions():
+            if "Delete" in action.text():
+                action.triggered.disconnect()
+                menu.removeAction(action)
+            elif "Cu&t" in action.text():
+                action.triggered.disconnect()
+                menu.removeAction(action)
+            elif "Paste" in action.text():
+                action.triggered.disconnect()
 
-        self.insert('1.0', f'{self.INTRO_TEXT}\n\n>>> ')
-        self.mark_set('input', 'insert')
+        act = menu.exec_(point)
+        if act:
+            if "Paste" in act.text():
+                self.customPaste()
 
-        # create input mark
-        self.mark_gravity('input', 'left')
-        # create proxy
-        self._orig = self._w + "_orig"
-        self.tk.call("rename", self._w, self._orig)
-        self.tk.createcommand(self._w, self._proxy)
-        # binding to Enter key
-        self.bind("<Return>", self.enter)
+    def customPaste(self):
+        self.moveCursor(QTextCursor.End)
+        self.insertPlainText(QApplication.clipboard().text())
+        self.moveCursor(QTextCursor.End)
 
-    def _proxy(self, *args):
-        largs = list(args)
+    def clearCurrentLine(self):
+        cs = self.textCursor()
+        cs.movePosition(QTextCursor.StartOfLine)
+        cs.movePosition(QTextCursor.EndOfLine)
+        cs.select(QTextCursor.LineUnderCursor)
+        text = cs.removeSelectedText()
 
-        if args[0] == 'insert':
-            if self.compare('insert', '<', 'input'):
-                # move insertion cursor to the editable part
-                # you can change 'end' with 'input'
-                self.mark_set('insert', 'end')
-        elif args[0] == "delete":
-            if self.compare(largs[1], '<', 'input'):
-                if len(largs) == 2:
-                    return  # don't delete anything
-                largs[1] = 'input'  # move deletion start at 'input'
-        result = self.tk.call((self._orig,) + tuple(largs))
-        return result
+    def isPrefix(self, text):
+        return self.prefix == text
 
-    def enter(self, event):
-        command = self.get('input', 'end')
-        # execute code
+    def getCurrentLine(self):
+        cs = self.textCursor()
+        cs.movePosition(QTextCursor.StartOfLine)
+        cs.movePosition(QTextCursor.EndOfLine)
+        cs.select(QTextCursor.LineUnderCursor)
+        text = cs.selectedText()
+        return text
+
+    def keyPressEvent(self, event):
+        if event.key() == Qt.Key_Return:
+            command = self.getCurrentLine()[len(self.prefix):]
+            self.execute(command)
+            self.callPrefix()
+            return
+        elif event.key() == Qt.Key_Backspace:
+            if self.prefix == self.getCurrentLine():
+                return
+        elif event.matches(QKeySequence.Delete):
+            return
+        if event.matches(QKeySequence.Paste):
+            self.customPaste()
+            return
+        elif self.textCursor().hasSelection():
+            t = self.toPlainText()
+            self.textCursor().clearSelection()
+            QTextEdit.keyPressEvent(self, event)
+            self.setPlainText(t)
+            self.moveCursor(QTextCursor.End)
+            return
+        QTextEdit.keyPressEvent(self, event)
+
+    def callPrefix(self):
+        self.prefix = ">>> "
+        self.counter += 1
+        self.append(self.prefix)
+
+    def execute(self, command):
         response = get_response(command)
-        # display result and next prompt
-        self.insert('end', f'\n{response}\n\n>>> ')
-        # move input mark
-        self.mark_set('input', 'insert')
-        return "break"  # don't execute class method that inserts a newline
-
-
-def openChatGPTWindow(event, window, xPos, yPos):
-    xPos = xPos + 150
-    yPos = yPos - 400
-    textInputWindow = tk.Toplevel(window)
-    textInputWindow.geometry('200x200+' + str(xPos) + f'+{yPos}')
-    textInput = ConsoleText(textInputWindow)
-    textInput.pack()
-    textInput.focus_set()
-
-    return textInputWindow
+        self.append(response + '\n')
